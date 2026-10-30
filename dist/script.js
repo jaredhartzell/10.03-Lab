@@ -1,56 +1,101 @@
-// This is a simple JavaScript file that adds interactivity to the HTML page
-// It defines a function to show an alert when a link is clicked
-function sayHello() {
-    alert("Hello, world from javascript!");
-}
-// This function will be called when the link is clicked
-// It shows an alert with a message
-// Ensure the DOM is fully loaded before attaching the event listener
-document.addEventListener("DOMContentLoaded", function() {
-    const link = document.getElementById("hello-link");
-    if (!link) {
-        console.error("Link with ID 'hello-link' not found.");
-        return;
-    }
-    link.addEventListener("click", function(event) {
-        event.preventDefault(); // Prevent the default link behavior
-        sayHello();
-    });
-});
+// Run domLoaded() when the page finishes loading
+document.addEventListener("DOMContentLoaded", domLoaded);
 
-async function getRandomJoke() {
-    return fetch('https://icanhazdadjoke.com/', {
-        headers: {
-            'Accept': 'text/plain'
+
+/**
+ * Sets up the page event handlers.
+ */
+function domLoaded() 
+{
+    const addButton = document.querySelector("#add-btn");
+    const textBox = document.querySelector("#new-task");
+
+    // Add a task when the Add button is clicked
+    addButton.addEventListener("click", addBtnClick);
+
+    // Add a task when Enter is pressed
+    textBox.addEventListener("keyup", function(event) 
+    {
+        if (event.key === "Enter") 
+        { 
+            addBtnClick(); 
         }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.text();
-    })
-    .catch(error => {
-        console.error('There was a problem fetching the joke:', error);
-        return "Failed to fetch a joke. Please try again later.";
     });
+
+    // Make the existing remove buttons work
+    const doneButtons = document.querySelectorAll(".done-btn");
+
+    for (let button of doneButtons) 
+    {
+        button.addEventListener("click", removeTask);
+    }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    const jokeButton = document.getElementById("joke-button");
-    if (!jokeButton) {
-        console.error("Button with ID 'joke-button' not found.");
-        return;
-    }
-    jokeButton.addEventListener("click", async function() {
 
-            const jokeDisplay = document.getElementById("joke-display");
-            if (!jokeDisplay) {
-                console.error("Element with ID 'joke-display' not found.");
-                return;
-            }
-            jokeDisplay.textContent = "Loading joke...";
-            const joke = await getRandomJoke();
-            jokeDisplay.textContent = joke;
-    });
-});
+/**
+ * Gets the task from the textbox and adds it to the list.
+ */
+function addBtnClick() 
+{
+    const textBox = document.querySelector("#new-task");
+    const newTask = textBox.value;
+
+    // Do not add an empty task
+    if (newTask !== "") 
+    {
+        addTask(newTask);
+
+        // Clear the textbox after adding the task
+        textBox.value = "";
+    }
+
+    // Put the cursor back in the textbox
+    textBox.focus();
+}
+
+
+/**
+ * Adds a new task to the ordered list.
+ */
+function addTask(newTask) 
+{
+    const taskList = document.querySelector("#task-list");
+
+    // Create a new list item
+    const newListItem = document.createElement("li");
+
+    // Add the task row, task text, and remove button
+    newListItem.innerHTML = 
+        `<span class="task-row">
+            <span class="task-text">${newTask}</span>
+            <button class="done-btn">&#10006;</button>
+        </span>`;
+
+    // Add the new task to the list
+    taskList.appendChild(newListItem);
+
+    // Find all done buttons
+    const doneButtons = document.querySelectorAll(".done-btn");
+
+    // Get the newest button
+    const lastButton = doneButtons[doneButtons.length - 1];
+
+    // Register its click event
+    lastButton.addEventListener("click", removeTask);
+}
+
+
+/**
+ * Removes the selected task from the list.
+ */
+function removeTask(event) 
+{
+    // The button's parent is the task-row span
+    const taskRow = event.target.parentNode;
+
+    // The task-row's parent is the <li>
+    const taskItem = taskRow.parentNode;
+
+    // The <li>'s parent is the <ol>
+    taskItem.parentNode.removeChild(taskItem);
+}
